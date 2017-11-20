@@ -1,3 +1,6 @@
 又一次的尝试回到程序员的路上
 学习怎么使用github
 希望自己能找回学习的快乐
+学习怎么使用github,很奇妙
+atom是个什么东西呢，文本编辑器？看起来很像一个SDK啊
+恩，SDK是什么呢？我好像忘记了software Development Kit？
