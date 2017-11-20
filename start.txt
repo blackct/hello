@@ -9,3 +9,12 @@ atom是个什么东西呢，文本编辑器？看起来很像一个SDK啊
 不过好像还有些功能是和github集成的，现在还没搞明白怎么设置。
 现在atom里更新了几句话，怎么pull的repository呢
 好像失败了，hello里看不到任何文件了，看看web吧
+难道应该是push.
+写个hello world，结束今天的学习吧
+
+main()
+{
+  printf("hello world!");
+}
+
+估计不能执行，就到这里吧。 2017/11/21 
