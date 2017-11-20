@@ -5,3 +5,7 @@
 atom是个什么东西呢，文本编辑器？看起来很像一个SDK啊
 恩，SDK是什么呢？我好像忘记了software Development Kit？
 如果我在记事本里编辑，以后我可以传到git吗？
+通过github客户端在外部编辑器里打开，可以使用安装的atom打开文档进行编辑，效果和记事本差不多。
+不过好像还有些功能是和github集成的，现在还没搞明白怎么设置。
+现在atom里更新了几句话，怎么pull的repository呢
+好像失败了，hello里看不到任何文件了，看看web吧
