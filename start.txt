@@ -24,3 +24,200 @@ main()
 git是一个项目版本管理软件
 github则是一个应用git的项目管理平台，平台的开放性，使得任何人都可以看到这些内容，学习，修改。
 git可以认为是一个软件，能够帮你更好的写程序，github则是一个网站，这个网站可以帮助程序员之间互相交流和学习。
+
+2017/11/23
+学习VBA，快速解决问题，录制宏——>手动操作——>分析宏代码
+
+2018/01/22
+用VBA实现批量复制和打印任务
+Option Explicit
+Dim Arr()     '定义要打印的记录的行号为可变数组，用来保存要打印的记录的行号
+Dim LastRow%, PrePage%, FindNameRow%  '定义数据表中的最后一行行号、向导在第二步时的页面、找到的姓名所在的行
+Dim OutToPrint As Boolean     '定义是否输出到打印机
+
+Private Sub CBcancel_Click()
+    Unload Me
+End Sub
+
+Private Sub CBfinish_Click()
+    Dim i%, j%
+    Dim myadd()
+    UFPrint.Hide
+    myadd = Array("C2", "E2", "G2", "C3", "E3", "G3", "C4", "C5", "F5", "C6", "C7", "E7", "C8", "E8", "C9", "E9", "G9", "C10", "E10", "G10", "B11")
+    '   定义需输入内容的单元格地址为数组
+    For i = LBound(Arr) To UBound(Arr)          ' 循环提取数据表中需要处理的记录
+        For j = LBound(myadd) To UBound(myadd)     ' 循环提取各字段数据
+            Sheets("print").Range(myadd(j)).Value = Sheets("data").Cells(Arr(i), j + 1).Value
+            '  将数据填入到表格中
+        Next j
+        If OutToPrint Then Sheets("print").PrintOut       ' 打印
+        If Not OutToPrint Then Sheets("print").PrintPreview    '打印预览
+        DoEvents
+    Next
+    UFPrint.MultiPage1.Value = 0    '到第一个页面
+    UFPrint.Show
+End Sub
+
+Private Sub CBnext_Click()
+    Dim i%, SelCount%, MyCount%, ChangePage%
+    Select Case MultiPage1.Value   '判断按下“下一步”按钮时的页面
+    Case 0    '第一个页面
+        If OptionButton1.Value = True Then ChangePage = 1
+        If OptionButton2.Value = True Then ChangePage = 2
+        If OptionButton3.Value = True Then ChangePage = 3
+        '根据所做的选择，分别设置将要跳到哪一个页面
+    Case 1    '第二个页面
+        If Val(TextBox1) < 2 Or Val(TextBox1) > LastRow Or Val(TextBox2) < 2 Or Val(TextBox2) > LastRow Then
+            MsgBox "数值应大于等于2，小于等于" & LastRow, vbOKOnly + vbExclamation, "提示"
+            TextBox1 = 2
+            TextBox2 = 2
+            Exit Sub
+        End If
+        '如果数据不符合要求，退出过程
+        ReDim Arr(CInt(TextBox1) To CInt(TextBox2))    '重新定义数组
+        For i = LBound(Arr) To UBound(Arr)
+            Arr(i) = i
+        Next i
+        '将数据写入数组
+        ChangePage = 4   '设置要转到的下一个页面
+    Case 2     '第三个页面
+        SelCount = 0
+        For i = 0 To ListBox1.ListCount - 1
+            If ListBox1.Selected(i) Then SelCount = SelCount + 1
+        Next i
+        '得到共有多少条记录被选择
+        ReDim Arr(1 To SelCount)   '重新定义数组
+        MyCount = 1
+        For i = 0 To ListBox1.ListCount - 1
+            If ListBox1.Selected(i) Then
+                Arr(MyCount) = CInt(ListBox1.List(i, 0))
+                MyCount = MyCount + 1
+            End If
+        Next i
+        '将数据写入数组
+        ChangePage = 4   '设置要转到的下一个页面
+    Case 3   '第四个页面
+        Call CommandButton2_Click    '调用“查找”，确定能否找到记录
+        If FindNameRow = 0 Then  '不能找到记录
+            MsgBox "找不到姓名为<" & TextBox3 & ">的记录，<下一步>按钮不起作用!", vbOKOnly + vbExclamation, "错误提示"
+            Exit Sub    '退出过程
+        End If
+        ReDim Arr(1 To 1)   '重新定义数组
+        Arr(1) = FindNameRow
+        ChangePage = 4    '设置要转到的下一个页面
+    End Select
+    MultiPage1.Value = ChangePage    '切换页面
+End Sub
+
+Private Sub CBpre_Click()
+    Dim ChangePage%
+    Select Case MultiPage1.Value
+    Case 1, 2, 3
+        ChangePage = 0
+    Case 4
+        ChangePage = PrePage   '读取前一页的信息
+    End Select
+    MultiPage1.Value = ChangePage
+End Sub
+
+Private Sub CommandButton2_Click()
+    Dim i%
+    FindNameRow = 0
+    For i = 2 To LastRow
+        If Sheets("data").Cells(i, 1) = TextBox3.Text Then
+            FindNameRow = i
+            Exit For
+        End If
+    Next i
+    If FindNameRow = 0 Then
+        Label9.Caption = "未找到记录，请修改姓名后再试"
+        CBnext.Enabled = False
+    Else
+        Label9.Caption = "可以找到记录，请继续下一步"
+        CBnext.Enabled = True
+    End If
+End Sub
+
+Private Sub MultiPage1_Change()
+    Dim i%
+    Dim MyStep$
+    Select Case MultiPage1.Value
+    Case 0
+        CBpre.Enabled = False
+        CBnext.Enabled = True
+        CBfinish.Enabled = False
+        MyStep = "一"
+    Case 1
+        CBpre.Enabled = True
+        CBnext.Enabled = True
+        CBfinish.Enabled = False
+        PrePage = 1
+        MyStep = "二"
+    Case 2
+        '重新加载listbox1中的数据
+        ListBox1.Clear   '清除列表框中的原有内容
+        For i = 2 To LastRow
+            ListBox1.AddItem i
+            ListBox1.List(i - 2, 1) = Sheets("data").Cells(i, 1)  '在列表框的第二列中添加姓名
+        Next i
+        ListBox1.Selected(0) = True    '将第一条记录设置为选择状态
+        CBpre.Enabled = True
+        CBnext.Enabled = True
+        CBfinish.Enabled = False
+        PrePage = 2
+        MyStep = "二"
+    Case 3
+        CBnext.Enabled = IIf(Left(Label9.Caption, 1) = "可", True, False)
+        CBpre.Enabled = True
+        CBfinish.Enabled = False
+        PrePage = 3
+        MyStep = "二"
+    Case 4
+        CBpre.Enabled = True
+        CBnext.Enabled = False
+        CBfinish.Enabled = True
+        MyStep = "三"
+    End Select
+    UFPrint.Caption = "批量打印信息收集向导---第" & MyStep & "步，共三步"    '更改窗体的题目
+End Sub
+
+Private Sub OptionButton4_Click()
+    OutToPrint = False
+End Sub
+
+Private Sub OptionButton5_Click()
+    OutToPrint = True
+End Sub
+
+Private Sub SpinButton1_Change()
+    TextBox1.Text = SpinButton1.Value
+End Sub
+Private Sub SpinButton2_Change()
+    TextBox2.Text = SpinButton2.Value
+End Sub
+
+Private Sub UserForm_Initialize()
+    LastRow = Sheets("data").Range("A65536").End(xlUp).Row    '获得数据表中的记录数
+    MultiPage1.Style = fmTabStyleNone               '将页面标签设置为无
+    MultiPage1.Value = 0       '设置第一个页面打开
+    CBfinish.Enabled = False      '禁用“完成”按钮
+    CBpre.Enabled = False       '禁用“上一条”按钮
+    OptionButton1.Value = True     '第一页上“连续的记录”被选中
+    OptionButton4.Value = True     '第五页上“打印预览”被选中
+    SpinButton1.Max = LastRow    '设置旋转按钮的最大值
+    SpinButton2.Max = LastRow    '同上
+End Sub
+
+2018/5/8
+excel中如何将文本日期转换成真日期格式。
+
+1、选中表格，点击数据-选择分列选项。
+2、在文本分列向导1中选择分隔符号，下一步。
+3、在文本分列向导2中选择默认，一般是tab键，下一步。
+4、在文本分列向导3中选择日期，完成。
+
+2018/5/25
+如何处理word文档保护
+
+1、新建一个word文档
+2、插入->对象->对象中的文字，然后选择受保护的word文档，即可。
